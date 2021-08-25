@@ -1,0 +1,6 @@
+data/
+LaTex/
+OtherDataset/
+SimulationResult/
+*.pdf
+*.txt
