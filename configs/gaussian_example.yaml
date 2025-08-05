@@ -14,6 +14,7 @@ dataset:
     0: 0  # keep class 0 as label 0
     2: 1  # remap class 2 to label 1
 
+
 model:
   type: mlp
   depth: 1

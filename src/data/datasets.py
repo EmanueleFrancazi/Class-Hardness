@@ -96,6 +96,7 @@ def get_torchvision_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, T
     shift = cfg.get('shift', 0.0)
     class_map = cfg.get('class_map', {})
 
+
     if name == 'mnist':
         dataset_cls = datasets.MNIST
     elif name == 'cifar10':
@@ -115,6 +116,7 @@ def get_torchvision_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, T
     train_dataset = _subset_torchvision_dataset(train_dataset, class_map)
     test_dataset = _subset_torchvision_dataset(test_dataset, class_map)
 
+
     mean, std = compute_mean_std(train_dataset)
 
     # Update transforms to include standardization and shifting
@@ -127,6 +129,7 @@ def get_torchvision_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, T
 
     input_shape = train_dataset[0][0].shape
     num_classes = len(class_map) if class_map else len(train_dataset.classes)
+
     return train_dataset, test_dataset, input_shape, num_classes
 
 
@@ -164,6 +167,7 @@ def get_gaussian_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, Tupl
     test_dataset = TensorDataset(test_x, test_y)
 
     # Standardize the synthetic data using statistics from the filtered data
+
     dmean, dstd = compute_mean_std(train_dataset)
     transform = StandardizeTransform(dmean, dstd, cfg.get('shift', 0.0))
     train_dataset = TensorDataset(transform(train_x), train_y)
@@ -177,6 +181,7 @@ def get_dataloaders(cfg: Dict):
     """Return training and test dataloaders based on configuration settings."""
     ds_cfg = cfg['dataset']
     name = ds_cfg['name'].lower()
+
 
     if name == 'gaussian':
         train_dataset, test_dataset, input_shape, num_classes = get_gaussian_datasets(ds_cfg)

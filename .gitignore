@@ -9,6 +9,7 @@ configs/*.yaml
 # Legacy ignores from previous repository
 # Ignore dataset downloads at repository root but keep source code under src/data
 /data/
+
 LaTex/
 OtherDataset/
 SimulationResult/
