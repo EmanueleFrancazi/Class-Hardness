@@ -6,7 +6,6 @@ the MLP implementation, the network exposes a ``get_features`` helper used for
 representation analysis.
 """
 
-import math
 import torch.nn as nn
 
 
