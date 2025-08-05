@@ -1,0 +1,22 @@
+dataset:
+  name: mnist
+  shift: 0.0
+
+model:
+  type: mlp
+  depth: 2
+  width: 128
+  activation: relu
+  pooling: max
+  init: kaiming_normal
+
+training:
+  epochs: 1
+  batch_size: 64
+  lr: 0.001
+  optimizer: adam
+
+runs: 1
+
+evaluation:
+  num_points: 10
