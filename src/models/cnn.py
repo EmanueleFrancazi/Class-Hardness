@@ -6,6 +6,7 @@ the MLP implementation, the network exposes a ``get_features`` helper used for
 representation analysis.
 """
 
+import math
 import torch.nn as nn
 
 
@@ -39,7 +40,6 @@ class SimpleCNN(nn.Module):
         self.classifier = nn.Linear(channels * h * w, num_classes)
 
     def forward(self, x):
-        """Compute class logits for a batch of images."""
         features = self.feature(x)
         logits = self.classifier(features.view(x.size(0), -1))
         return logits
