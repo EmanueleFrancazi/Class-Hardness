@@ -78,6 +78,21 @@ python train.py --config configs/gaussian_example.yaml
 
 Replace the configuration file with your own to run different experiments.
 
+## Visualizing Results
+
+After simulations have produced `results/run_*` directories, the helper script
+`scripts/plot_results.py` can visualize per-class losses and representation
+overlaps for different class subsets. Edit the `SIMULATION_SETTINGS` list at the
+top of the script to point to the desired result folders and specify which class
+labels were used.
+
+```bash
+python scripts/plot_results.py
+```
+
+The script generates a 2×2 figure for each pair of simulation settings and a
+scatter plot comparing dynamic and static overlaps across all runs.
+
 ## Extending
 
 New architectures, datasets, or metrics can be added by implementing new modules under `src/` and referencing them from configuration files.

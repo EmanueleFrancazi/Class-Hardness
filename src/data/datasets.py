@@ -8,7 +8,6 @@ helpers for standardization and class filtering.
 from typing import Tuple, Dict
 
 import numpy as np
-
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 from torchvision import datasets, transforms
@@ -188,7 +187,6 @@ def get_dataloaders(cfg: Dict):
         train_dataset, test_dataset, input_shape, num_classes = get_gaussian_datasets(ds_cfg)
     else:
         train_dataset, test_dataset, input_shape, num_classes = get_torchvision_datasets(ds_cfg)
-
 
     batch_size = cfg['training']['batch_size']
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
