@@ -1,3 +1,12 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+results/
+configs/*.yaml
+!configs/default.yaml
+!configs/gaussian_example.yaml
+
+# Legacy ignores from previous repo
 data/
 LaTex/
 OtherDataset/
