@@ -10,6 +10,10 @@ dataset:
     std: 1.0
     train_samples_per_class: 20
     test_samples_per_class: 10
+  class_map:
+    0: 0  # keep class 0 as label 0
+    2: 1  # remap class 2 to label 1
+
 
 model:
   type: mlp

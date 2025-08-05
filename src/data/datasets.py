@@ -1,6 +1,13 @@
-"""Dataset utilities for loading and preprocessing data."""
+"""Dataset utilities for loading and preprocessing data.
+
+This module centralizes dataset handling for the simulation framework. It
+supports torchvision datasets as well as synthetic Gaussian data and exposes
+helpers for standardization and class filtering.
+"""
 
 from typing import Tuple, Dict
+
+import numpy as np
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -36,10 +43,61 @@ def compute_mean_std(dataset) -> Tuple[torch.Tensor, torch.Tensor]:
     std = torch.sqrt(var / total)
     return mean, std
 
+def _subset_torchvision_dataset(dataset, class_map: Dict[int, int]):
+    """Return a subset of ``dataset`` keeping only classes in ``class_map``.
 
-def get_torchvision_datasets(name: str, shift: float) -> Tuple[TensorDataset, TensorDataset, Tuple[int, int, int], int]:
-    """Load a torchvision dataset and apply standardization with optional shift."""
-    name = name.lower()
+    Parameters
+    ----------
+    dataset: torchvision Dataset
+        Dataset instance whose ``data`` and ``targets`` attributes will be
+        filtered **in place**.
+    class_map: Dict[int, int]
+        Mapping from original class labels to new labels. Classes not present
+        in the keys are dropped. The values assign the new label index.
+    """
+
+    if not class_map:
+        return dataset
+
+    # Convert targets to a tensor for easier masking regardless of storage type
+    targets = torch.as_tensor(dataset.targets)
+    mask = torch.zeros_like(targets, dtype=torch.bool)
+    for old in class_map.keys():
+        mask |= targets == int(old)
+    indices = mask.nonzero(as_tuple=False).squeeze()
+
+    # Subset the underlying data array (numpy or tensor)
+    if isinstance(dataset.data, np.ndarray):
+        dataset.data = dataset.data[indices.numpy()]
+    else:  # torch.Tensor
+        dataset.data = dataset.data[indices]
+
+    # Remap labels to the new values
+    targets = targets[indices]
+    for old, new in class_map.items():
+        targets[targets == int(old)] = int(new)
+    dataset.targets = targets.tolist()
+
+    # Optionally shrink the ``classes`` attribute for better introspection
+    if hasattr(dataset, "classes"):
+        dataset.classes = [dataset.classes[int(old)] for old in class_map.keys()]
+    return dataset
+
+
+def get_torchvision_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, Tuple[int, int, int], int]:
+    """Load a torchvision dataset and apply standardization and class mapping.
+
+    The configuration dictionary ``cfg`` should contain ``name`` (mnist,
+    cifar10, cifar100), optional ``shift`` for pixel shifting, and an optional
+    ``class_map`` dict specifying which classes to keep and the new label for
+    each of them.
+    """
+
+    name = cfg['name'].lower()
+    shift = cfg.get('shift', 0.0)
+    class_map = cfg.get('class_map', {})
+
+
     if name == 'mnist':
         dataset_cls = datasets.MNIST
     elif name == 'cifar10':
@@ -54,6 +112,12 @@ def get_torchvision_datasets(name: str, shift: float) -> Tuple[TensorDataset, Te
     train_dataset = dataset_cls(root='data', train=True, download=True, transform=base_transform)
     test_dataset = dataset_cls(root='data', train=False, download=True, transform=base_transform)
 
+    # Apply class filtering before computing statistics so that normalization
+    # is based solely on the selected subset.
+    train_dataset = _subset_torchvision_dataset(train_dataset, class_map)
+    test_dataset = _subset_torchvision_dataset(test_dataset, class_map)
+
+
     mean, std = compute_mean_std(train_dataset)
 
     # Update transforms to include standardization and shifting
@@ -65,7 +129,8 @@ def get_torchvision_datasets(name: str, shift: float) -> Tuple[TensorDataset, Te
     test_dataset.transform = standardize
 
     input_shape = train_dataset[0][0].shape
-    num_classes = len(train_dataset.classes)
+    num_classes = len(class_map) if class_map else len(train_dataset.classes)
+
     return train_dataset, test_dataset, input_shape, num_classes
 
 
@@ -84,10 +149,26 @@ def get_gaussian_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, Tupl
     train_y = torch.arange(num_classes).repeat_interleave(train_n)
     test_y = torch.arange(num_classes).repeat_interleave(test_n)
 
+    # Optionally subset and relabel classes according to ``class_map``
+    class_map = cfg.get('class_map', {})
+    if class_map:
+        train_mask = torch.zeros_like(train_y, dtype=torch.bool)
+        test_mask = torch.zeros_like(test_y, dtype=torch.bool)
+        for old in class_map.keys():
+            train_mask |= train_y == int(old)
+            test_mask |= test_y == int(old)
+        train_x, train_y = train_x[train_mask], train_y[train_mask]
+        test_x, test_y = test_x[test_mask], test_y[test_mask]
+        for old, new in class_map.items():
+            train_y[train_y == int(old)] = int(new)
+            test_y[test_y == int(old)] = int(new)
+        num_classes = len(class_map)
+
     train_dataset = TensorDataset(train_x, train_y)
     test_dataset = TensorDataset(test_x, test_y)
 
-    # Standardize the synthetic data
+    # Standardize the synthetic data using statistics from the filtered data
+
     dmean, dstd = compute_mean_std(train_dataset)
     transform = StandardizeTransform(dmean, dstd, cfg.get('shift', 0.0))
     train_dataset = TensorDataset(transform(train_x), train_y)
@@ -101,12 +182,13 @@ def get_dataloaders(cfg: Dict):
     """Return training and test dataloaders based on configuration settings."""
     ds_cfg = cfg['dataset']
     name = ds_cfg['name'].lower()
-    shift = ds_cfg.get('shift', 0.0)
+
 
     if name == 'gaussian':
         train_dataset, test_dataset, input_shape, num_classes = get_gaussian_datasets(ds_cfg)
     else:
-        train_dataset, test_dataset, input_shape, num_classes = get_torchvision_datasets(name, shift)
+        train_dataset, test_dataset, input_shape, num_classes = get_torchvision_datasets(ds_cfg)
+
 
     batch_size = cfg['training']['batch_size']
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)

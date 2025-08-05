@@ -19,7 +19,9 @@ README.md               # This file
 
 Simulation parameters are specified in YAML files under `configs/`. The configuration controls:
 
-- **Dataset**: `mnist`, `cifar10`, `cifar100`, or `gaussian` synthetic data.
+- **Dataset**: `mnist`, `cifar10`, `cifar100`, or `gaussian` synthetic data. Datasets can be
+  restricted to a subset of classes by providing a `class_map` dictionary mapping original
+  labels to new labels. Classes not listed are discarded.
 - **Model**:
   - `type`: `mlp` or `cnn`
   - `depth` and `width`
@@ -34,6 +36,22 @@ Simulation parameters are specified in YAML files under `configs/`. The configur
   - `num_points`: number of logarithmically spaced checkpoints
 
 The file `configs/gaussian_example.yaml` provides a minimal example with a synthetic dataset.
+
+### Class Subselection Example
+
+To run experiments on a subset of classes, include a `class_map` in the dataset
+configuration. The following snippet keeps only digits `0` and `1` from MNIST
+and remaps them to labels `0` and `1`:
+
+```yaml
+dataset:
+  name: mnist
+  class_map:
+    0: 0
+    1: 1
+```
+
+Any classes not listed in the mapping are ignored.
 
 ## Metrics
 
