@@ -5,8 +5,6 @@ function and pooling strategy are driven by the configuration file. Similar to
 the MLP implementation, the network exposes a ``get_features`` helper used for
 representation analysis.
 """
-
-
 import torch.nn as nn
 
 
@@ -41,7 +39,6 @@ class SimpleCNN(nn.Module):
 
     def forward(self, x):
         """Compute class logits for a batch of images."""
-
         features = self.feature(x)
         logits = self.classifier(features.view(x.size(0), -1))
         return logits
