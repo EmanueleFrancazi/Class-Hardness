@@ -114,7 +114,7 @@ def get_torchvision_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, T
     # is based solely on the selected subset.
     train_dataset = _subset_torchvision_dataset(train_dataset, class_map)
     test_dataset = _subset_torchvision_dataset(test_dataset, class_map)
-
+    
     mean, std = compute_mean_std(train_dataset)
 
     # Update transforms to include standardization and shifting
@@ -127,6 +127,7 @@ def get_torchvision_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, T
 
     input_shape = train_dataset[0][0].shape
     num_classes = len(class_map) if class_map else len(train_dataset.classes)
+
     return train_dataset, test_dataset, input_shape, num_classes
 
 
@@ -177,7 +178,6 @@ def get_dataloaders(cfg: Dict):
     """Return training and test dataloaders based on configuration settings."""
     ds_cfg = cfg['dataset']
     name = ds_cfg['name'].lower()
-
     if name == 'gaussian':
         train_dataset, test_dataset, input_shape, num_classes = get_gaussian_datasets(ds_cfg)
     else:
