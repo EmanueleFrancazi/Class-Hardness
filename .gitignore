@@ -8,6 +8,7 @@ configs/*.yaml
 !configs/cifar100_resnet_example.yaml
 !configs/resnet50_cifar100.yaml
 
+
 # Legacy ignores from previous repository
 # Ignore dataset downloads at repository root but keep source code under src/data
 /data/

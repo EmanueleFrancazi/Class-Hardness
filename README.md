@@ -9,6 +9,7 @@ configs/                # YAML configuration files
 src/                    # Library code
   data/                 # Dataset utilities and preprocessing
   models/               # Implementations of MLP, CNN, and ResNet architectures
+
   utils/                # Initialization and metric utilities
 results/                # Output metrics for each run (generated)
 train.py                # Entry point for running simulations
@@ -29,6 +30,7 @@ Simulation parameters are specified in YAML files under `configs/`. The configur
   - `activation`: `relu` or `tanh` (MLP/CNN) or `relu`/`gelu`/`silu`/`leaky_relu` (ResNet)
   - `pooling` (CNN): `max` or `avg`; (ResNet): `avg`/`max`/`none`
   - `cifar_stem` (ResNet): use a 3×3 stride-1 stem for 32×32 inputs
+
   - `init`: weight initialization (`kaiming_normal`, `kaiming_uniform`)
 - **Training**:
   - `epochs`, `batch_size`, `lr`, `optimizer` (`sgd` or `adam`)
@@ -39,6 +41,7 @@ Simulation parameters are specified in YAML files under `configs/`. The configur
 
 The file `configs/gaussian_example.yaml` provides a minimal example with a synthetic dataset, while
 `configs/resnet50_cifar100.yaml` demonstrates training a custom ResNet-50 on a subset of CIFAR-100 classes.
+
 
 ### Class Subselection Example
 
@@ -57,6 +60,7 @@ dataset:
 Alternatively, a ``classes`` list may be given to specify which classes to keep. The list can
 contain either numeric indices or class names (for datasets that expose ``classes``).
 The selected classes are relabeled in the order provided.
+
 
 ## Metrics
 
@@ -83,6 +87,7 @@ python train.py --config configs/gaussian_example.yaml
 
 # ResNet-50 on a CIFAR-100 subset (5 classes)
 python train.py --config configs/resnet50_cifar100.yaml
+
 ```
 
 Replace the configuration file with your own to run different experiments.
