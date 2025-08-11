@@ -1,4 +1,15 @@
-data/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+results/
+configs/*.yaml
+!configs/default.yaml
+!configs/gaussian_example.yaml
+!configs/cifar100_resnet_example.yaml
+
+# Legacy ignores from previous repository
+# Ignore dataset downloads at repository root but keep source code under src/data
+/data/
 LaTex/
 OtherDataset/
 SimulationResult/
