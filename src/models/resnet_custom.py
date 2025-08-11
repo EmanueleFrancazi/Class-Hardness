@@ -1,20 +1,11 @@
 """Customizable ResNet-50 backbone."""
 
+from typing import Dict, Tuple, Type
+
+
 import torch.nn as nn
 from torchvision.models.resnet import ResNet, Bottleneck
 
-
-def _get_activation(name: str) -> nn.Module:
-    name = (name or "relu").lower()
-    if name == "relu":
-        return nn.ReLU(inplace=True)
-    if name == "gelu":
-        return nn.GELU()
-    if name == "silu":
-        return nn.SiLU(inplace=True)
-    if name == "leaky_relu":
-        return nn.LeakyReLU(inplace=True, negative_slope=0.01)
-    raise ValueError(f"Unknown activation: {name}")
 
 
 def _get_global_pool(name: str) -> nn.Module:
@@ -28,13 +19,30 @@ def _get_global_pool(name: str) -> nn.Module:
     raise ValueError(f"Unknown pooling: {name}")
 
 
-def _replace_relu(module: nn.Module, new_act: nn.Module):
-    """Recursively replace ``nn.ReLU`` modules with ``new_act`` copies."""
+def _activation_spec(name: str) -> Tuple[Type[nn.Module], Dict]:
+    """Return the activation class and kwargs for ``name``."""
+    name = (name or "relu").lower()
+    if name == "relu":
+        return nn.ReLU, {"inplace": True}
+    if name == "gelu":
+        return nn.GELU, {}
+    if name == "silu":
+        return nn.SiLU, {"inplace": True}
+    if name == "leaky_relu":
+        return nn.LeakyReLU, {"inplace": True, "negative_slope": 0.01}
+    if name == "tanh":
+        return nn.Tanh, {}
+    raise ValueError(f"Unknown activation: {name}")
+
+
+def _replace_relu_with_factory(module: nn.Module, act_cls: Type[nn.Module], act_kwargs: Dict):
+    """Recursively replace ``nn.ReLU`` modules with ``act_cls`` instances."""
     for name, child in list(module.named_children()):
         if isinstance(child, nn.ReLU):
-            setattr(module, name, type(new_act)(**getattr(new_act, "__dict__", {})))
+            setattr(module, name, act_cls(**act_kwargs))
         else:
-            _replace_relu(child, new_act)
+            _replace_relu_with_factory(child, act_cls, act_kwargs)
+
 
 
 class ResNetCustom(ResNet):
@@ -45,7 +53,8 @@ class ResNetCustom(ResNet):
     num_classes: int
         Number of output classes.
     activation: str, optional
-        ``'relu'``, ``'gelu'``, ``'silu'`` or ``'leaky_relu'``.
+        ``'relu'``, ``'tanh'``, ``'gelu'``, ``'silu'`` or ``'leaky_relu'``.
+
     global_pool: str, optional
         ``'avg'``, ``'max'`` or ``'none'`` for the global pooling layer.
     use_cifar_stem: bool, optional
@@ -58,12 +67,10 @@ class ResNetCustom(ResNet):
         super().__init__(block=Bottleneck, layers=[3, 4, 6, 3], num_classes=num_classes)
 
         # Swap activations throughout the network
-        act = _get_activation(activation)
-        self.relu = type(act)(**getattr(act, "__dict__", {}))
-        _replace_relu(self.layer1, act)
-        _replace_relu(self.layer2, act)
-        _replace_relu(self.layer3, act)
-        _replace_relu(self.layer4, act)
+        act_cls, act_kwargs = _activation_spec(activation)
+        self.relu = act_cls(**act_kwargs)
+        _replace_relu_with_factory(self, act_cls, act_kwargs)
+
 
         # Replace global pooling
         self.avgpool = _get_global_pool(global_pool)
@@ -73,4 +80,14 @@ class ResNetCustom(ResNet):
             inplanes = 64
             self.conv1 = nn.Conv2d(3, inplanes, kernel_size=3, stride=1, padding=1, bias=False)
             self.maxpool = nn.Identity()
+
+
+if __name__ == "__main__":
+    import torch
+
+    model = ResNetCustom(num_classes=10, activation="tanh", global_pool="avg", use_cifar_stem=True)
+    x = torch.randn(2, 3, 32, 32)
+    y = model(x)
+    assert y.shape == (2, 10)
+
 

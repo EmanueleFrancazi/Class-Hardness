@@ -27,7 +27,7 @@ Simulation parameters are specified in YAML files under `configs/`. The configur
 - **Model**:
   - `type`: `mlp`, `cnn`, or `resnet`
   - `depth` and `width` (MLP/CNN)
-  - `activation`: `relu` or `tanh` (MLP/CNN) or `relu`/`gelu`/`silu`/`leaky_relu` (ResNet)
+  - `activation`: `relu` or `tanh` (MLP/CNN) or `relu`/`tanh`/`gelu`/`silu`/`leaky_relu` (ResNet)
   - `pooling` (CNN): `max` or `avg`; (ResNet): `avg`/`max`/`none`
   - `cifar_stem` (ResNet): use a 3×3 stride-1 stem for 32×32 inputs
 
@@ -60,7 +60,6 @@ dataset:
 Alternatively, a ``classes`` list may be given to specify which classes to keep. The list can
 contain either numeric indices or class names (for datasets that expose ``classes``).
 The selected classes are relabeled in the order provided.
-
 
 ## Metrics
 
