@@ -1,0 +1,23 @@
+dataset:
+  name: cifar100
+  shift: 0.0
+  class_map:
+    0: 0  # keep class 0 -> label 0
+    1: 1  # keep class 1 -> label 1
+    2: 2  # keep class 2 -> label 2
+
+model:
+  type: resnet
+  small_input: true
+  init: kaiming_normal
+
+training:
+  epochs: 1
+  batch_size: 64
+  lr: 0.001
+  optimizer: adam
+
+runs: 1
+
+evaluation:
+  num_points: 10
