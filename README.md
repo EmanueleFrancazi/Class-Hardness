@@ -9,6 +9,7 @@ configs/                # YAML configuration files
 src/                    # Library code
   data/                 # Dataset utilities and preprocessing
   models/               # Implementations of MLP, CNN, and ResNet architectures
+
   utils/                # Initialization and metric utilities
 results/                # Output metrics for each run (generated)
 train.py                # Entry point for running simulations
@@ -28,6 +29,7 @@ Simulation parameters are specified in YAML files under `configs/`. The configur
   - `activation`: `relu` or `tanh`
   - `pooling` (CNN only): `max` or `avg`
   - `small_input` (ResNet): adjust initial layers for 32×32 images
+
   - `init`: weight initialization (`kaiming_normal`, `kaiming_uniform`)
 - **Training**:
   - `epochs`, `batch_size`, `lr`, `optimizer` (`sgd` or `adam`)
@@ -38,6 +40,7 @@ Simulation parameters are specified in YAML files under `configs/`. The configur
 
 The file `configs/gaussian_example.yaml` provides a minimal example with a synthetic dataset, while
 `configs/cifar100_resnet_example.yaml` demonstrates training a ResNet on a subset of CIFAR-100 classes.
+
 
 ### Class Subselection Example
 

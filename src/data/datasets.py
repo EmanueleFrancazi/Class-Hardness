@@ -3,6 +3,7 @@
 This module centralizes dataset handling for the simulation framework. It
 supports torchvision datasets (MNIST, CIFAR-10, CIFAR-100) as well as synthetic
 Gaussian data and exposes helpers for standardization and class filtering.
+
 """
 
 from typing import Tuple, Dict
@@ -127,6 +128,7 @@ def get_torchvision_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, T
 
     input_shape = train_dataset[0][0].shape
     num_classes = len(class_map) if class_map else len(train_dataset.classes)
+
     return train_dataset, test_dataset, input_shape, num_classes
 
 
