@@ -2,6 +2,7 @@
 
 from typing import Dict, Tuple, Type
 
+import torch
 
 import torch.nn as nn
 from torchvision.models.resnet import ResNet, Bottleneck
@@ -44,7 +45,6 @@ def _replace_relu_with_factory(module: nn.Module, act_cls: Type[nn.Module], act_
             _replace_relu_with_factory(child, act_cls, act_kwargs)
 
 
-
 class ResNetCustom(ResNet):
     """ResNet50 with pluggable activation and global pooling.
 
@@ -80,6 +80,30 @@ class ResNetCustom(ResNet):
             inplanes = 64
             self.conv1 = nn.Conv2d(3, inplanes, kernel_size=3, stride=1, padding=1, bias=False)
             self.maxpool = nn.Identity()
+
+    def get_features(self, x: torch.Tensor) -> torch.Tensor:
+        """Return flattened features from the penultimate layer.
+
+        The method mirrors :func:`ResNet.forward` up to (but excluding) the
+        final fully connected layer, providing representations suitable for
+        overlap computations.
+        """
+
+        # Stem
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        # Residual stages
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+
+        # Global pooling and flatten
+        x = self.avgpool(x)
+        return torch.flatten(x, 1)
 
 
 if __name__ == "__main__":

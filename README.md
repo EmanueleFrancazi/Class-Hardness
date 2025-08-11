@@ -42,7 +42,6 @@ Simulation parameters are specified in YAML files under `configs/`. The configur
 The file `configs/gaussian_example.yaml` provides a minimal example with a synthetic dataset, while
 `configs/resnet50_cifar100.yaml` demonstrates training a custom ResNet-50 on a subset of CIFAR-100 classes.
 
-
 ### Class Subselection Example
 
 To run experiments on a subset of classes, include a `class_map` in the dataset
