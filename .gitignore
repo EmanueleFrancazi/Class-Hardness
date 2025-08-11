@@ -6,6 +6,7 @@ configs/*.yaml
 !configs/default.yaml
 !configs/gaussian_example.yaml
 !configs/cifar100_resnet_example.yaml
+!configs/resnet50_cifar100.yaml
 
 
 # Legacy ignores from previous repository

@@ -21,14 +21,15 @@ README.md               # This file
 Simulation parameters are specified in YAML files under `configs/`. The configuration controls:
 
 - **Dataset**: `mnist`, `cifar10`, `cifar100`, or `gaussian` synthetic data. Datasets can be
-  restricted to a subset of classes by providing a `class_map` dictionary mapping original
-  labels to new labels. Classes not listed are discarded.
+  restricted to a subset of classes either via a `class_map` dictionary mapping original
+  labels to new labels or by specifying a `classes` list of label indices or names. Classes
+  not listed are discarded.
 - **Model**:
   - `type`: `mlp`, `cnn`, or `resnet`
   - `depth` and `width` (MLP/CNN)
-  - `activation`: `relu` or `tanh`
-  - `pooling` (CNN only): `max` or `avg`
-  - `small_input` (ResNet): adjust initial layers for 32×32 images
+  - `activation`: `relu` or `tanh` (MLP/CNN) or `relu`/`gelu`/`silu`/`leaky_relu` (ResNet)
+  - `pooling` (CNN): `max` or `avg`; (ResNet): `avg`/`max`/`none`
+  - `cifar_stem` (ResNet): use a 3×3 stride-1 stem for 32×32 inputs
 
   - `init`: weight initialization (`kaiming_normal`, `kaiming_uniform`)
 - **Training**:
@@ -39,7 +40,7 @@ Simulation parameters are specified in YAML files under `configs/`. The configur
   - `num_points`: number of logarithmically spaced checkpoints
 
 The file `configs/gaussian_example.yaml` provides a minimal example with a synthetic dataset, while
-`configs/cifar100_resnet_example.yaml` demonstrates training a ResNet on a subset of CIFAR-100 classes.
+`configs/resnet50_cifar100.yaml` demonstrates training a custom ResNet-50 on a subset of CIFAR-100 classes.
 
 
 ### Class Subselection Example
@@ -56,7 +57,10 @@ dataset:
     1: 1
 ```
 
-Any classes not listed in the mapping are ignored.
+Alternatively, a ``classes`` list may be given to specify which classes to keep. The list can
+contain either numeric indices or class names (for datasets that expose ``classes``).
+The selected classes are relabeled in the order provided.
+
 
 ## Metrics
 
@@ -78,7 +82,12 @@ Metrics are saved in `results/run_<id>/metrics.npz` as NumPy arrays. The saved f
 ## Running a Simulation
 
 ```bash
+# Baseline MLP on synthetic data
 python train.py --config configs/gaussian_example.yaml
+
+# ResNet-50 on a CIFAR-100 subset (5 classes)
+python train.py --config configs/resnet50_cifar100.yaml
+
 ```
 
 Replace the configuration file with your own to run different experiments.

@@ -11,7 +11,7 @@ from src.utils.config import load_config
 from src.data.datasets import get_dataloaders
 from src.models.mlp import MLP
 from src.models.cnn import SimpleCNN
-from src.models.resnet import ResNet50
+from src.models.resnet_custom import ResNetCustom
 
 from src.utils.init import initialize_weights
 from src.utils.metrics import evaluate, compute_static_overlap
@@ -52,11 +52,14 @@ def build_model(cfg_model, input_shape, num_classes):
                           width=cfg_model['width'],
                           activation=cfg_model.get('activation', 'relu'),
                           pooling=cfg_model.get('pooling', 'max'))
-        
     elif model_type == 'resnet':
-        # ResNet-50 optionally adapted for small inputs (e.g., 32×32 images)
-        model = ResNet50(num_classes=num_classes,
-                         small_input=cfg_model.get('small_input', True))
+        # Customizable ResNet-50 backbone
+        model = ResNetCustom(
+            num_classes=num_classes,
+            activation=cfg_model.get('activation', 'relu'),
+            global_pool=cfg_model.get('pooling', 'avg'),
+            use_cifar_stem=cfg_model.get('cifar_stem', True),
+        )
 
     else:
         raise ValueError(f"Unknown model type {cfg_model['type']}")

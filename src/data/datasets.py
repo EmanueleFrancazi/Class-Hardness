@@ -3,10 +3,10 @@
 This module centralizes dataset handling for the simulation framework. It
 supports torchvision datasets (MNIST, CIFAR-10, CIFAR-100) as well as synthetic
 Gaussian data and exposes helpers for standardization and class filtering.
-
 """
 
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List, Sequence
+
 
 import numpy as np
 import torch
@@ -84,18 +84,44 @@ def _subset_torchvision_dataset(dataset, class_map: Dict[int, int]):
     return dataset
 
 
-def get_torchvision_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, Tuple[int, int, int], int]:
+def _build_class_map(classes: Sequence, all_classes: Sequence[str]) -> Dict[int, int]:
+    """Build a mapping from original labels to new contiguous labels.
+
+    ``classes`` may contain either integer class indices or string class names
+    drawn from ``all_classes``. The resulting dictionary maps the original
+    dataset label to the new label index, preserving the order provided in
+    ``classes``.
+    """
+
+    if not classes:
+        return {}
+
+    if isinstance(classes[0], str):
+        name_to_idx = {name: idx for idx, name in enumerate(all_classes)}
+        orig = [name_to_idx[c] for c in classes]
+    else:
+        orig = [int(c) for c in classes]
+    return {o: i for i, o in enumerate(orig)}
+
+
+def get_torchvision_datasets(cfg: Dict, resize_to_224: bool = False) -> Tuple[TensorDataset, TensorDataset, Tuple[int, int, int], int]:
     """Load a torchvision dataset and apply standardization and class mapping.
 
-    The configuration dictionary ``cfg`` should contain ``name`` (mnist,
-    cifar10, cifar100), optional ``shift`` for pixel shifting, and an optional
-    ``class_map`` dict specifying which classes to keep and the new label for
-    each of them.
+    Parameters
+    ----------
+    cfg: Dict
+        Dataset configuration containing ``name`` (mnist, cifar10, cifar100),
+        optional ``shift`` for pixel shifting, and either ``class_map`` or a
+        ``classes`` list specifying which classes to keep.
+    resize_to_224: bool, optional
+        If ``True``, images are resized to ``224×224`` before standardization
+        (useful when pairing CIFAR images with a standard ResNet stem).
+
     """
 
     name = cfg['name'].lower()
     shift = cfg.get('shift', 0.0)
-    class_map = cfg.get('class_map', {})
+
 
     if name == 'mnist':
         dataset_cls = datasets.MNIST
@@ -106,10 +132,21 @@ def get_torchvision_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, T
     else:
         raise ValueError(f"Unknown dataset {name}")
 
-    # First pass: load with ``ToTensor`` only to compute statistics
-    base_transform = transforms.ToTensor()
+    # Base transform used for statistic computation; optionally resize first
+    transform_list: List = []
+    if resize_to_224:
+        transform_list.append(transforms.Resize((224, 224)))
+    transform_list.append(transforms.ToTensor())
+    base_transform = transforms.Compose(transform_list)
+
     train_dataset = dataset_cls(root='data', train=True, download=True, transform=base_transform)
     test_dataset = dataset_cls(root='data', train=False, download=True, transform=base_transform)
+
+    # Determine which classes to keep, either via explicit mapping or list
+    if 'classes' in cfg and cfg['classes']:
+        class_map = _build_class_map(cfg['classes'], train_dataset.classes)
+    else:
+        class_map = cfg.get('class_map', {})
 
     # Apply class filtering before computing statistics so that normalization
     # is based solely on the selected subset.
@@ -118,11 +155,16 @@ def get_torchvision_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, T
 
     mean, std = compute_mean_std(train_dataset)
 
-    # Update transforms to include standardization and shifting
-    standardize = transforms.Compose([
+    # Final transforms include optional resize, tensor conversion, and standardization
+    final_transforms: List = []
+    if resize_to_224:
+        final_transforms.append(transforms.Resize((224, 224)))
+    final_transforms.extend([
         transforms.ToTensor(),
         StandardizeTransform(mean, std, shift),
     ])
+    standardize = transforms.Compose(final_transforms)
+
     train_dataset.transform = standardize
     test_dataset.transform = standardize
 
@@ -183,7 +225,10 @@ def get_dataloaders(cfg: Dict):
     if name == 'gaussian':
         train_dataset, test_dataset, input_shape, num_classes = get_gaussian_datasets(ds_cfg)
     else:
-        train_dataset, test_dataset, input_shape, num_classes = get_torchvision_datasets(ds_cfg)
+        model_cfg = cfg.get('model', {})
+        resize = model_cfg.get('type', '').lower() == 'resnet' and not model_cfg.get('cifar_stem', True)
+        train_dataset, test_dataset, input_shape, num_classes = get_torchvision_datasets(ds_cfg, resize_to_224=resize)
+
 
     batch_size = cfg['training']['batch_size']
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
