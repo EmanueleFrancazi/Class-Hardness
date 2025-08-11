@@ -3,8 +3,10 @@
 from typing import Dict, Tuple, Type
 
 import torch
+
 import torch.nn as nn
 from torchvision.models.resnet import ResNet, Bottleneck
+
 
 
 def _get_global_pool(name: str) -> nn.Module:
@@ -52,6 +54,7 @@ class ResNetCustom(ResNet):
         Number of output classes.
     activation: str, optional
         ``'relu'``, ``'tanh'``, ``'gelu'``, ``'silu'`` or ``'leaky_relu'``.
+
     global_pool: str, optional
         ``'avg'``, ``'max'`` or ``'none'`` for the global pooling layer.
     use_cifar_stem: bool, optional
@@ -67,6 +70,7 @@ class ResNetCustom(ResNet):
         act_cls, act_kwargs = _activation_spec(activation)
         self.relu = act_cls(**act_kwargs)
         _replace_relu_with_factory(self, act_cls, act_kwargs)
+
 
         # Replace global pooling
         self.avgpool = _get_global_pool(global_pool)
@@ -109,4 +113,5 @@ if __name__ == "__main__":
     x = torch.randn(2, 3, 32, 32)
     y = model(x)
     assert y.shape == (2, 10)
+
 

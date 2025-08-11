@@ -7,6 +7,7 @@ Gaussian data and exposes helpers for standardization and class filtering.
 
 from typing import Tuple, Dict, List, Sequence
 
+
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -115,10 +116,12 @@ def get_torchvision_datasets(cfg: Dict, resize_to_224: bool = False) -> Tuple[Te
     resize_to_224: bool, optional
         If ``True``, images are resized to ``224×224`` before standardization
         (useful when pairing CIFAR images with a standard ResNet stem).
+
     """
 
     name = cfg['name'].lower()
     shift = cfg.get('shift', 0.0)
+
 
     if name == 'mnist':
         dataset_cls = datasets.MNIST
@@ -161,11 +164,13 @@ def get_torchvision_datasets(cfg: Dict, resize_to_224: bool = False) -> Tuple[Te
         StandardizeTransform(mean, std, shift),
     ])
     standardize = transforms.Compose(final_transforms)
+
     train_dataset.transform = standardize
     test_dataset.transform = standardize
 
     input_shape = train_dataset[0][0].shape
     num_classes = len(class_map) if class_map else len(train_dataset.classes)
+
     return train_dataset, test_dataset, input_shape, num_classes
 
 
@@ -223,6 +228,7 @@ def get_dataloaders(cfg: Dict):
         model_cfg = cfg.get('model', {})
         resize = model_cfg.get('type', '').lower() == 'resnet' and not model_cfg.get('cifar_stem', True)
         train_dataset, test_dataset, input_shape, num_classes = get_torchvision_datasets(ds_cfg, resize_to_224=resize)
+
 
     batch_size = cfg['training']['batch_size']
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)

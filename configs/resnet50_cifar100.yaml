@@ -1,6 +1,7 @@
 model:
   type: resnet
   activation: gelu          # relu|tanh|gelu|silu|leaky_relu
+
   pooling: avg              # avg|max|none
   cifar_stem: true
   init: kaiming_normal
