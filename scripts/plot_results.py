@@ -190,6 +190,7 @@ def main():
     # Scatter plot of dynamic vs static overlaps
     if scatter_points:
         fig_scatter, ax = plt.subplots(figsize=(6, 6))
+
         colors = plt.cm.tab10.colors
         markers = ['o', 's', 'D', '^', 'v', 'P', '*', 'X']
         setting_to_color = {s["path"]: colors[i % len(colors)] for i, (s, _) in enumerate(loaded)}
@@ -215,6 +216,7 @@ def main():
         unique = dict(zip(labels, handles))
         ax.legend(unique.values(), unique.keys(), fontsize='small', frameon=False)
         fig_scatter.tight_layout()
+
     else:
         print("No scatter points to plot.")
 
