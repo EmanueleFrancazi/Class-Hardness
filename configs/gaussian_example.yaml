@@ -1,0 +1,33 @@
+dataset:
+  name: gaussian
+  shift: 0.0
+  gaussian:
+    channels: 1
+    height: 8
+    width: 8
+    num_classes: 3
+    mean: 0.0
+    std: 1.0
+    train_samples_per_class: 20
+    test_samples_per_class: 10
+  class_map:
+    0: 0  # keep class 0 as label 0
+    2: 1  # remap class 2 to label 1
+
+model:
+  type: mlp
+  depth: 1
+  width: 32
+  activation: relu
+  init: kaiming_normal
+
+training:
+  epochs: 1
+  batch_size: 10
+  lr: 0.01
+  optimizer: sgd
+
+runs: 1
+
+evaluation:
+  num_points: 5
