@@ -11,6 +11,8 @@ from src.utils.config import load_config
 from src.data.datasets import get_dataloaders
 from src.models.mlp import MLP
 from src.models.cnn import SimpleCNN
+from src.models.resnet import ResNet50
+
 from src.utils.init import initialize_weights
 from src.utils.metrics import evaluate, compute_static_overlap
 
@@ -30,15 +32,18 @@ def get_evaluation_steps(cfg_eval, total_steps):
 
 
 def build_model(cfg_model, input_shape, num_classes):
-    """Build an MLP or CNN based on the configuration dictionary."""
-    if cfg_model['type'].lower() == 'mlp':
+    """Build a neural network based on the configuration dictionary."""
+    model_type = cfg_model['type'].lower()
+    if model_type == 'mlp':
+
         input_dim = int(np.prod(input_shape))
         model = MLP(input_dim=input_dim,
                     num_classes=num_classes,
                     depth=cfg_model['depth'],
                     width=cfg_model['width'],
                     activation=cfg_model.get('activation', 'relu'))
-    elif cfg_model['type'].lower() == 'cnn':
+    elif model_type == 'cnn':
+
         model = SimpleCNN(in_channels=input_shape[0],
                           input_height=input_shape[1],
                           input_width=input_shape[2],
@@ -47,6 +52,12 @@ def build_model(cfg_model, input_shape, num_classes):
                           width=cfg_model['width'],
                           activation=cfg_model.get('activation', 'relu'),
                           pooling=cfg_model.get('pooling', 'max'))
+        
+    elif model_type == 'resnet':
+        # ResNet-50 optionally adapted for small inputs (e.g., 32×32 images)
+        model = ResNet50(num_classes=num_classes,
+                         small_input=cfg_model.get('small_input', True))
+
     else:
         raise ValueError(f"Unknown model type {cfg_model['type']}")
 

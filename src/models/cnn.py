@@ -5,6 +5,7 @@ function and pooling strategy are driven by the configuration file. Similar to
 the MLP implementation, the network exposes a ``get_features`` helper used for
 representation analysis.
 """
+
 import torch.nn as nn
 
 

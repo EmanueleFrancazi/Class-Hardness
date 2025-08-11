@@ -1,8 +1,9 @@
 """Dataset utilities for loading and preprocessing data.
 
 This module centralizes dataset handling for the simulation framework. It
-supports torchvision datasets as well as synthetic Gaussian data and exposes
-helpers for standardization and class filtering.
+supports torchvision datasets (MNIST, CIFAR-10, CIFAR-100) as well as synthetic
+Gaussian data and exposes helpers for standardization and class filtering.
+
 """
 
 from typing import Tuple, Dict
@@ -114,7 +115,7 @@ def get_torchvision_datasets(cfg: Dict) -> Tuple[TensorDataset, TensorDataset, T
     # is based solely on the selected subset.
     train_dataset = _subset_torchvision_dataset(train_dataset, class_map)
     test_dataset = _subset_torchvision_dataset(test_dataset, class_map)
-    
+
     mean, std = compute_mean_std(train_dataset)
 
     # Update transforms to include standardization and shifting
@@ -178,6 +179,7 @@ def get_dataloaders(cfg: Dict):
     """Return training and test dataloaders based on configuration settings."""
     ds_cfg = cfg['dataset']
     name = ds_cfg['name'].lower()
+
     if name == 'gaussian':
         train_dataset, test_dataset, input_shape, num_classes = get_gaussian_datasets(ds_cfg)
     else:

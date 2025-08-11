@@ -8,7 +8,8 @@ This repository provides a flexible framework for running simulations on deep ne
 configs/                # YAML configuration files
 src/                    # Library code
   data/                 # Dataset utilities and preprocessing
-  models/               # Implementations of MLP and CNN architectures
+  models/               # Implementations of MLP, CNN, and ResNet architectures
+
   utils/                # Initialization and metric utilities
 results/                # Output metrics for each run (generated)
 train.py                # Entry point for running simulations
@@ -23,10 +24,12 @@ Simulation parameters are specified in YAML files under `configs/`. The configur
   restricted to a subset of classes by providing a `class_map` dictionary mapping original
   labels to new labels. Classes not listed are discarded.
 - **Model**:
-  - `type`: `mlp` or `cnn`
-  - `depth` and `width`
+  - `type`: `mlp`, `cnn`, or `resnet`
+  - `depth` and `width` (MLP/CNN)
   - `activation`: `relu` or `tanh`
   - `pooling` (CNN only): `max` or `avg`
+  - `small_input` (ResNet): adjust initial layers for 32×32 images
+
   - `init`: weight initialization (`kaiming_normal`, `kaiming_uniform`)
 - **Training**:
   - `epochs`, `batch_size`, `lr`, `optimizer` (`sgd` or `adam`)
@@ -35,7 +38,9 @@ Simulation parameters are specified in YAML files under `configs/`. The configur
   - `steps`: explicit list of evaluation steps **or**
   - `num_points`: number of logarithmically spaced checkpoints
 
-The file `configs/gaussian_example.yaml` provides a minimal example with a synthetic dataset.
+The file `configs/gaussian_example.yaml` provides a minimal example with a synthetic dataset, while
+`configs/cifar100_resnet_example.yaml` demonstrates training a ResNet on a subset of CIFAR-100 classes.
+
 
 ### Class Subselection Example
 
